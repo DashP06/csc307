@@ -12,10 +12,23 @@ function MyApp() {
   ]);
 
   function removeOneCharacter(index) {
-    const updated = characters.filter((character, i) => {
-      return i !== index;
-    });
-    setCharacters(updated);
+    const userToDelete = characters[index];
+
+    fetch(`http://localhost:8000/users/${userToDelete.id}`, {
+      method: "DELETE",
+    })
+      .then((res) => {
+        if (res.status === 204) {
+          // Only remove from frontend if backend confirms deletion
+          const updated = characters.filter((_, i) => i !== index);
+          setCharacters(updated);
+        } else if (res.status === 404) {
+          console.warn("User not found on backend, nothing deleted");
+        } else {
+          console.error("Failed to delete user, status:", res.status);
+        }
+      })
+    .catch((error) => console.error("Error deleting user:", error));
   }
 
   function updateList(person) {
